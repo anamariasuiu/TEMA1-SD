@@ -1,0 +1,115 @@
+Structura node(node_t) pentru lista contine un o variabila de tip sir de caracter(data),
+una pentru caracter(ch) si doi pointeri de tip struct node unul spre nodul anterior din
+lista (prev), si unul spre nodul urmator(next).
+Structura nod(dequeue_t) pentru stiva contine un o variabila de tip sir de caracter(data)
+si un pointer de tip struct nod spre nodul urmator din stiva(next).
+
+In main: 
+Cream urmatoarele liste: head_comenzi pentru comenzi, head pentru textul initial,
+cursor pentru pozitionarea cursorului si text pentru memorarea textului nou inserat de 
+fiecare data. Cream si doua stive: una pentru undo, una pentru redo.
+Le initializam, iar listei cursor ii atribuim head(pentru ca acesta se afla la inceputul
+textului).
+Cat timp fisierul editor.in inca are continut, citim  de fiecare data cu fgetc caracter 
+caracter textul pe care vrem sa-l modificam (la prima inserare,salvat in lista head) sau
+pe care vrem sa-l introducem incepand cu a doua inserare a textului(salvat in lista 
+cursor).Memoram textul de fiecare data si in lista text si lungimea acestuia(ne ajuta 
+pentru comanda redo). Cand ajungem la caracterele "::i\n" trecem peste ele si introducem 
+de asemenea sirul "::i\n" in stiva_undo. 
+Schimband in modul inserare comenzi, citim fiecare comanda cu fgets pana cand ajungem la
+sirul cu s cu s[0]=s[1]=':'. Introducem de fiecare data sirul nou format in lista 
+head_comenzi, iar daca sirul nu contine comanda save(s\n) sau quit(q\n) il introducem 
+si in stiva.
+Facem o copie a listei head_comenzi si citim incepand cu primul nod, fiecare comanda(sir/ 
+"data") din lista.Pentru ca sirul/comanda poate sa aiba si parametrii(spatii) ii 
+atribuim sirului comanda fara parametru cu ajutorul functiei token. Daca avem comanda 
+fara parametrii(cum ar fi backspace) comparam sirul cu comanda insotita de \n ("b\n") ,
+iar daca sunt egale apelam functia pentru a face modificarea pe text. Daca avem comanda 
+care poate sa aiba sau nu parametru, cum ar fi delete, comparam cu "d\n"(fara param.) 
+sau cu "d"(cu param.) si apelam functia respectiva. Daca avem comanda doar cu parametru
+(ex: gl 5) comparam sirul cu "gl" si apelam functia daca sirul nostru este egal cu sirul
+respectiv. Pentru fiecare apel al functiei folosim parametrul copie_head_comenzi->data
+pentru a avea sirul nemodificat.Dupa ce citim toate comenzile, golim listele head_comenzi
+si text pentru a introduce urmatoarele comenzi/text in cazul in care fisierul editor.in 
+nu este la final. Daca acesta este la final, golim toate listele, stiva undo si nodul din
+stiva care contine sirul "::i\n".
+
+Functia remove_node:
+Facem legatura dintre nodul anterior(back) si nodul urmator(after) al nodului care
+trebuie sters. Stergem nodul prin intermediul nodului p, iar nodului node ii atribuim
+nodul urmator adica nodul after.
+
+Functia gl_line:
+In cazul in care comanda are mai putin de 5 caractere (toate comenzile in afara de gc)
+atunci linia unde trebuie mutat cursorul se afla pe pozitia 3 a sirului si memoram 
+valoarei ei de tip int cu ajutorul functiei sscanf. Daca comanda are mai mult de 5
+caractere(comanda gc) atunci linia unde trebuie mutat cursorul se afla pe pozitia 5 
+a sirului. Cu ajutorul unui for deplasam cursorul de la primul caracter al listei la 
+inceputul linie la care trebuie mutat parcurgand cate un rand de fiecare data (pana ajunge
+la new line de fiecare data). Returnam pozitia cursorului.
+
+Functia dl_line:
+Daca sirului are mai mult de 3 caractere(adica avem parametrul liniei pe care vrem sa o
+stergem) mutam cursorul la linia respectiva cu ajutorul functiei gl_line. Daca nu,
+cursorul ramane la aceeasi linie. Stergem fiecare caracter de pe linie cu ajutorul 
+functiei remove_node, cursorul mutandu-se de fiecare data pe nodul din dreapta nodului
+care trebuie sters.
+
+Functia backspace:
+Mutam cursorul cu o pozitie la stanga, astfel *cursor sa pointeze pe nodul care trebuie
+sters.Stergem nodul cu ajutorul functiei remove_node, iar dupa *cursor o sa pointeze pe
+nodul din dreapta nodului sters, adica fix unde se afla inainte de a apela functia.
+
+Functia gc_char_line:
+Daca sirul are mai mult de 5 caractere, adica daca avem parametrul 2 pentru linia care
+trebuie stearsa, mutam cursorul pe linia respectiva cu ajutorul functiei gl_line.
+Atribuim variabilei "pozitie" numarul caracterului unde trebuie mutat cursorul pe linie, 
+transformand parametrul 1 din char in int cu ajutorul functiei sscanf.
+Mutam cu un for cursorul pana dupa caracterul respectiv.
+
+Functia d_chars(delete):
+Daca lungimea sirului este 2, adica daca nu avem parametru, numarul de caractere care 
+trebuie sterse este 1. Daca sirul este mai mare decat 2, avem parametru, si acesta este
+pe pozitia 2 a sirului(ex: d 5). Daca cursorul pointeaza pe un nod cu caracterul 
+new_line, trecem la nodul urmator pentru a nu sterge new line-ul. Cu un for parcurgem
+nr de caractere si stergem nodul curent cu functia remove_node, prin intermediul acesteia
+mutand cursorul de fiecare data pe urmatorul nod.
+
+Functie re_old_new:
+Cu ajutorul functiei token atribuim pointerului old_word tokenul delimitat de doua
+spatii si pointerul new_word tokenul delimitat de spatiu si new_line. Cu un while 
+parcurgem tot textul incepand de la pozitia curenta a cursorului. In acest timp
+testam daca gasim sirul old de-a lungul textului, verificand daca avem aceleasi
+caractere si acelasi nr de caractere. Daca il gasim variabila ok ia valoarea 0 si se 
+iese din while si atribuim incepand cu ultimul caracter al sirului old caracterul de
+pe aceeasi pozitie j din sirul new. Daca lungimea sirului old este mai mica decat cea a
+sirului new, mai adaugam noduri in text care contin caracterele ramase din new.
+
+Functie dw_word:
+Atribuim pointerului char word tokenul delimitat de space si new line, adica exact sirul
+dorit a fi sters din comanda. Se procedeaza similar ca la functie re_old_new pentru a 
+gasi sirul in text. Daca se gaseste se elimina fiecare nod incepand cu cel care contine
+ultimul caracter din sirul word pana la cel care contine primul caracter din word.
+
+Functia undo:
+Stergem din stiva undo nodurile care se afla pana la nodul cu sirul undo(inclusiv). 
+Punem in stiva de redo comanda urmatoare dupa comanda undo pentru a stii pentru ce
+operatie trebuie sa facem redo daca este cazul. Daca comanda careia trebuie sa-i facem
+undo este inserare("::i\n") stergem cu ajutorul functie remove_node textul adaugat la 
+ultima inserare.
+
+Functia redo:
+Testam daca ultima comanda inainte de redo a fost undo. Daca da, testam daca comanda
+pentru care trebuie sa dam redo este inserarea textului. Daca da, inseram textul
+caracter cu caracter adaugand cate un nod dupa cursor cu ajutorul functiei push_back.
+
+Functia save:
+Deschidem fisierul de fiecare data pentru a salva in acesta textul modificat. Incepem
+de la primul caracter al textului. Cat timp textul initial(head-ul/ p) nu a ajuns la
+pozitia cursorului introducem cu functia fputc caracter cu caracter din nodurile listei
+head. Am luat cazul special daca avem new_line urmat de new_line (ramas de la functia 
+redo), iar daca nu, introducem si "\n" in fisier.
+Daca textul initial a ajuns la pozitia cursorului sau daca cursorul e la inceput de text
+testam daca avem caracter in nod(daca cursorul nu e capat de lista), iar daca e trecem
+la primul caracter. Cat timp lista cursor nu ajunge la ultimul nod punem caracter cu 
+caracter in fisier. Pentru ultimul nod testam acelasi caz special mentionat anterior.
